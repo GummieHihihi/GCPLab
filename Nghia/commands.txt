@@ -1,0 +1,37 @@
+
+
+# util command
+
+chmod u+x file_name.sh
+
+
+echo $PUBSUB_EMULATOR_HOST
+echo $PUBSUB_PROJECT_ID
+
+/home/nghiaht7/data-engineer/.venv/bin/python 
+
+
+
+# database commnand
+
+docker-compose up
+
+docker start 0e43e4b3198d 
+
+pgcli -h localhost -p 5432 -u nttdata -d nttdata 
+
+ctr + l --> clean screen
+truncate table account;
+select * from account;
+select count(*) from account;
+
+\d account
+
+---> create table again to adapt new scheam (id was double precision not integer)
+drop table account;
+
+\d account
+ \d[+] [pattern]                      | List or describe tables, views and sequences.
+
+
+

@@ -1,0 +1,11 @@
+services:
+  pgdatabase:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=nttdata
+      - POSTGRES_PASSWORD=nttdata
+      - POSTGRES_DB=nttdata
+    ports:
+      - "5432:5432"
+
+    
