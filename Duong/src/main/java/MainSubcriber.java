@@ -10,7 +10,7 @@ import java.util.concurrent.TimeoutException;
 public class MainSubcriber {
     public static void main(String[] args) {
         String projectId = "nttdata-c4e-bde";
-        String subcriptionId = "uc1-input-topic-1";
+        String subcriptionId = "uc1-input-topic-sub-1";
         subscribeAsync(projectId, subcriptionId);
 
     }
