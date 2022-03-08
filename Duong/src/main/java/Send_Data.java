@@ -11,7 +11,7 @@ public class Send_Data {
 
     public static void main(String[] args) {
         String projectId = "nttdata-c4e-bde";
-        String topicId = "projects\\nttdata-c4e-bde\\subscriptions\\uc1-input-topic-sub-1";
+        String topicId = "uc1-input-topic-1";
         TopicName topicName = TopicName.of(projectId, topicId);
         Publisher publisher = null;
 
