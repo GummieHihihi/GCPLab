@@ -11,7 +11,7 @@ public class Send_Data {
 
     public static void main(String[] args) {
         String projectId = "nttdata-c4e-bde";
-        String topicId = "uc1-input-topic-1";
+        String topicId = "uc1-input-topic-3";
         TopicName topicName = TopicName.of(projectId, topicId);
         Publisher publisher = null;
 
@@ -24,7 +24,7 @@ public class Send_Data {
 
         GenerateData dataFactory = new GenerateData();
 
-        for (int i = 0; i < 10;i++){
+        for (int i = 0; i < 50;i++){
             System.out.printf("Publish message %dth in Topic \n", i);
 //            #generate right wrong topic
             Random random = new Random();
