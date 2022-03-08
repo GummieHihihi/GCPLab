@@ -6,10 +6,11 @@ import com.google.pubsub.v1.TopicName;
 
 import java.io.IOException;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 public class Send_Data {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         String projectId = "nttdata-c4e-bde";
         String topicId = "uc1-input-topic-3";
         TopicName topicName = TopicName.of(projectId, topicId);
@@ -41,6 +42,8 @@ public class Send_Data {
             ByteString data = ByteString.copyFromUtf8(record);
             PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
             ApiFuture<String> future = publisher.publish(pubsubMessage);
+            String messageId = future.get();
+            System.out.println("testing cai de: " + messageId);
 
         }
     }
