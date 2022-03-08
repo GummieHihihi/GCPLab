@@ -1,15 +1,10 @@
-package Publisher;
-
-import com.github.javafaker.Faker;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
-import org.json.simple.JSONObject;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Random;
 
 public class Send_Data {
@@ -19,11 +14,13 @@ public class Send_Data {
         String topicId = "projects\\nttdata-c4e-bde\\subscriptions\\uc1-input-topic-sub-1";
         TopicName topicName = TopicName.of(projectId, topicId);
         Publisher publisher = null;
+
         try {
             publisher = Publisher.newBuilder(topicName).build();
-        }  catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
+
 
         GenerateData dataFactory = new GenerateData();
 

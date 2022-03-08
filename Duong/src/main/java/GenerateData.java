@@ -1,5 +1,3 @@
-package Publisher;
-
 import com.github.javafaker.Faker;
 import org.json.simple.JSONObject;
 
