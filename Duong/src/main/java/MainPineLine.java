@@ -167,8 +167,7 @@ public class MainPineLine {
         String testing = transformOut
                 // Retrieve parsed messages
                 .get(parsedMessages)
-                .toString();
-        System.out.println(testing);
+                        .toString();
 //                .apply("WindowByMinute", Window.<com.mypackage.pipeline.Account>into(
 //                                FixedWindows.of(Duration.standardSeconds(options.getWindowDuration()))).withAllowedLateness(
 //                                Duration.standardDays(options.getAllowedLateness()))
@@ -191,25 +190,25 @@ public class MainPineLine {
 //                    }
 //                }))
 //                .setRowSchema(pageviewsSchema)
-//                 TODO: is this a streaming insert?
+//                // TODO: is this a streaming insert?
 //                .apply("WriteToBQ", BigQueryIO.<Row>write().to(options.getOutputTableName())
 //                        .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
 //                        .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED));
 
         // Write unparsed messages to Cloud Storage
-//        transformOut
-//                // Retrieve unparsed messages
-//                .get(unparsedMessages)
-//                .apply("FireEvery10s", Window.<String>configure().triggering(
-//                                Repeatedly.forever(
-//                                        AfterProcessingTime.pastFirstElementInPane()
-//                                                .plusDelayOf(Duration.standardSeconds(10))))
-//                        .discardingFiredPanes())
-//                .apply("WriteDeadletterStorage", TextIO.write()
-//                        TODO: change this to actual full parameter
-//                        .to(options.getDeadletterBucket() + "/deadletter/*")
-//                        .withWindowedWrites()
-//                        .withNumShards(10));
+        transformOut
+                // Retrieve unparsed messages
+                .get(unparsedMessages)
+                .apply("FireEvery10s", Window.<String>configure().triggering(
+                                Repeatedly.forever(
+                                        AfterProcessingTime.pastFirstElementInPane()
+                                                .plusDelayOf(Duration.standardSeconds(10))))
+                        .discardingFiredPanes())
+                .apply("WriteDeadletterStorage", TextIO.write()
+                        //TODO: change this to actual full parameter
+                        .to(options.getDeadletterBucket() + "/deadletter/*")
+                        .withWindowedWrites()
+                        .withNumShards(10));
 
 
         return pipeline.run();
