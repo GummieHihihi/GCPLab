@@ -1,5 +1,5 @@
 import com.github.javafaker.Faker;
-import org.json.JSONObject;
+import org.json.simple.JSONObject;
 
 import java.nio.charset.Charset;
 import java.util.Random;

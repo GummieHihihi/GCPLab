@@ -2,25 +2,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
-import org.apache.beam.sdk.io.TextIO;
-import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubOptions;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
-import org.apache.beam.sdk.options.PipelineOptions.DirectRunner;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.schemas.Schema;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.*;
-import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
-
-
-import java.time.Instant;
 
 public class MainPineLine {
     static final TupleTag<com.mypackage.pipeline.Account> parsedMessages = new TupleTag<com.mypackage.pipeline.Account>() {
@@ -28,12 +17,11 @@ public class MainPineLine {
     static final TupleTag<String> unparsedMessages = new TupleTag<String>() {
     };
 
-
     /*
      * The logger to output status messages to.
      */
 
-    public interface Options extends PipelineOptions, PubsubOptions, DataflowPipelineOptions {
+    public interface Options extends PipelineOptions, PubsubOptions, DataflowPinelineOptions {
         /**
          * The {@link Options} class provides the custom execution options passed by the executor at the
          * command-line.
@@ -86,7 +74,8 @@ public class MainPineLine {
                 .withValidation()
                 .as(Options.class);
         options.setStreaming(true);
-//        options.setPubsubRootUrl("http://127.0.0.1:8085");
+        options.setRunner(Di.class);
+        System.out.println(options.getInputTopic() + options.getDeadletterBucket());
         run(options);
     }
 
@@ -99,7 +88,7 @@ public class MainPineLine {
 //        PCollectionTuple transformOut =
                 pipeline.apply("ReadPubSubMessages", PubsubIO.readStrings()
                                 // Retrieve timestamp information from Pubsub Message attribute
-                                .fromTopic("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-sub-1"))
+                                .fromTopic(options.getInputTopic()))
                         .apply("Print", ParDo.of(new DoFn<String, String>() {
             @ProcessElement
             public void processElement(ProcessContext c) {
