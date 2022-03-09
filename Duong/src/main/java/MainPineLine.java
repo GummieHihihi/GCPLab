@@ -1,15 +1,23 @@
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.schemas.Schema;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.windowing.AfterPane;
+import org.apache.beam.sdk.transforms.windowing.AfterWatermark;
+import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,4 +94,92 @@ public class MainPineLine {
             //TODO: change window_end in other labs
             .addDateTimeField("window_end")
             .build();
+    public static final Schema rawSchema = Schema.builder()
+            .addStringField("user_id")
+            .addDateTimeField("event_timestamp")
+            .addDateTimeField("processing_timestamp")
+            .build();
+
+    public static void main(String[] args) {
+        PipelineOptionsFactory.register(Options.class);
+        Options options = PipelineOptionsFactory.fromArgs(args)
+                .withValidation()
+                .as(Options.class);
+        run(options);
+    }
+
+    public static PipelineResult run(Options options) {
+
+        // Create the pipeline
+        Pipeline pipeline = Pipeline.create(options);
+        options.setJobName("Analyze human information" + System.currentTimeMillis());
+
+        /*
+         * Steps:
+         *  1) Read something
+         *  2) Transform something
+         *  3) Write something
+         */
+
+        LOG.info("Building pipeline...");
+
+
+        PCollectionTuple transformOut =
+                pipeline.apply("ReadPubSubMessages", PubsubIO.readStrings()
+                                // Retrieve timestamp information from Pubsub Message attributes
+                                .withTimestampAttribute("timestamp")
+                                .fromTopic(options.getInputTopic()))
+                        .apply("ConvertMessageToCommonLog", new PubsubMessageToCommonLog());
+
+        // Write parsed messages to BigQuery
+        transformOut
+                // Retrieve parsed messages
+                .get(parsedMessages)
+                .apply("WindowByMinute", Window.<com.mypackage.pipeline.Account>into(
+                                FixedWindows.of(Duration.standardSeconds(options.getWindowDuration()))).withAllowedLateness(
+                                Duration.standardDays(options.getAllowedLateness()))
+                        .triggering(AfterWatermark.pastEndOfWindow()
+                                .withLateFirings(AfterPane.elementCountAtLeast(1)))
+                        .accumulatingFiredPanes())
+                // update to Group.globally() after resolved: https://issues.apache.org/jira/browse/BEAM-10297
+                // Only if supports Row output
+                .apply("CountPerMinute", Combine.globally(Count.<CommonLog>combineFn())
+                        .withoutDefaults())
+                .apply("ConvertToRow", ParDo.of(new DoFn<Long, Row>() {
+                    @ProcessElement
+                    public void processElement(@Element Long views, OutputReceiver<Row> r, IntervalWindow window) {
+                        Instant i = Instant.ofEpochMilli(window.end()
+                                .getMillis());
+                        Row row = Row.withSchema(pageviewsSchema)
+                                .addValues(views, i)
+                                .build();
+                        r.output(row);
+                    }
+                }))
+                .setRowSchema(pageviewsSchema)
+                // TODO: is this a streaming insert?
+                .apply("WriteToBQ", BigQueryIO.<Row>write().to(options.getOutputTableName())
+                        .useBeamSchema()
+                        .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
+                        .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED));
+
+        // Write unparsed messages to Cloud Storage
+        transformOut
+                // Retrieve unparsed messages
+                .get(unparsedMessages)
+                .apply("FireEvery10s", Window.<String>configure().triggering(
+                                Repeatedly.forever(
+                                        AfterProcessingTime.pastFirstElementInPane()
+                                                .plusDelayOf(Duration.standardSeconds(10))))
+                        .discardingFiredPanes())
+                .apply("WriteDeadletterStorage", TextIO.write()
+                        //TODO: change this to actual full parameter
+                        .to(options.getDeadletterBucket() + "/deadletter/*")
+                        .withWindowedWrites()
+                        .withNumShards(10));
+
+
+        return pipeline.run();
+    }
+
 }
