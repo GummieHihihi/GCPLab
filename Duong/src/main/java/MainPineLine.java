@@ -61,7 +61,6 @@ public class MainPineLine {
     /*
      * The logger to output status messages to.
      */
-    private static final Logger LOG = (Logger) LoggerFactory.getLogger(MainPineLine.class);
 
     /**
      * The {@link Options} class provides the custom execution options passed by the executor at the
@@ -120,17 +119,6 @@ public class MainPineLine {
             }
         }
 
-    public static final Schema pageviewsSchema = Schema.builder()
-            .addInt64Field("pageviews")
-            //TODO: change window_end in other labs
-            .addDateTimeField("window_end")
-            .build();
-    public static final Schema rawSchema = Schema.builder()
-            .addStringField("user_id")
-            .addDateTimeField("event_timestamp")
-            .addDateTimeField("processing_timestamp")
-            .build();
-
     public static void main(String[] args) {
         PipelineOptionsFactory.register(Options.class);
         Options options = PipelineOptionsFactory.fromArgs(args)
@@ -153,8 +141,6 @@ public class MainPineLine {
          *  3) Write something
          */
 
-        LOG.info("Building pipeline...");
-
 
         PCollectionTuple transformOut =
                 pipeline.apply("ReadPubSubMessages", PubsubIO.readStrings()
@@ -168,47 +154,6 @@ public class MainPineLine {
                 // Retrieve parsed messages
                 .get(parsedMessages)
                         .toString();
-//                .apply("WindowByMinute", Window.<com.mypackage.pipeline.Account>into(
-//                                FixedWindows.of(Duration.standardSeconds(options.getWindowDuration()))).withAllowedLateness(
-//                                Duration.standardDays(options.getAllowedLateness()))
-//                        .triggering(AfterWatermark.pastEndOfWindow()
-//                                .withLateFirings(AfterPane.elementCountAtLeast(1)))
-//                        .accumulatingFiredPanes())
-//                // update to Group.globally() after resolved: https://issues.apache.org/jira/browse/BEAM-10297
-//                // Only if supports Row output
-//                .apply("CountPerMinute", Combine.globally(Count.<com.mypackage.pipeline.Account>combineFn())
-//                        .withoutDefaults())
-//                .apply("ConvertToRow", ParDo.of(new DoFn<Long, Row>() {
-//                    @ProcessElement
-//                    public void processElement(@Element Long views, OutputReceiver<Row> r, IntervalWindow window) {
-//                        Instant i = Instant.ofEpochMilli(window.end()
-//                                .getMillis());
-//                        Row row = Row.withSchema(pageviewsSchema)
-//                                .addValues(views, i)
-//                                .build();
-//                        r.output(row);
-//                    }
-//                }))
-//                .setRowSchema(pageviewsSchema)
-//                // TODO: is this a streaming insert?
-//                .apply("WriteToBQ", BigQueryIO.<Row>write().to(options.getOutputTableName())
-//                        .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
-//                        .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED));
-
-        // Write unparsed messages to Cloud Storage
-        transformOut
-                // Retrieve unparsed messages
-                .get(unparsedMessages)
-                .apply("FireEvery10s", Window.<String>configure().triggering(
-                                Repeatedly.forever(
-                                        AfterProcessingTime.pastFirstElementInPane()
-                                                .plusDelayOf(Duration.standardSeconds(10))))
-                        .discardingFiredPanes())
-                .apply("WriteDeadletterStorage", TextIO.write()
-                        //TODO: change this to actual full parameter
-                        .to(options.getDeadletterBucket() + "/deadletter/*")
-                        .withWindowedWrites()
-                        .withNumShards(10));
 
 
         return pipeline.run();
