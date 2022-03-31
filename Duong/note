@@ -1,0 +1,33 @@
+docker run -it --rm -p "8085:8085" google/cloud-sdk gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
+
+gcloud info --format=value(config.paths.global_config_dir)
+
+#!/bin/bash
+
+echo publish simulated data
+
+# init pub/sub emulator environment
+gcloud beta emulators pubsub env-init
+export PUBSUB_EMULATOR_HOST="localhost:8085"
+export PUBSUB_PROJECT_ID='nttdata-c4e-bde'
+
+gcloud beta emulators pubsub env-init
+set PUBSUB_EMULATOR_HOST=localhost:8085
+set PUBSUB_PROJECT_ID=nttdata-c4e-bde
+
+C:\Users\HP\AppData\Roaming\gcloud
+
+C:\Users\HP\AppData\Roaming\gcloud\emulators\pubsub
+
+gcloud beta emulators pubsub env-init --data-dir=C:\Users\HP\AppData\Roaming\gcloud\emulators\pubsub
+
+
+mvn exec:java -Dexec.mainClass="Send_Data"
+
+gcloud beta emulators pubsub start --project=nttdata-c4e-bde
+
+C:\Users\HP\Desktop\GitCode\GCPLab\Duong
+
+bug :
+ An exception occured while executing the Java class. Encountered checked exception when constructing an instance from factory method DirectRunner#fromOptions(interface org.apache.beam.sdk.options.PipelineOptions): Class org.apache.beam.model.pipeline.v1.RunnerApi$StandardPTransforms$Primitives does not implement the requested interface org.apache.beam.vendor.grpc.v1_13_1.com.google.protobuf.ProtocolMessageEnum
+ -> dependency not in the same version

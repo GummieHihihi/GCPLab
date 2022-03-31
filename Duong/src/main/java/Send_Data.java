@@ -17,7 +17,6 @@ public class Send_Data {
         String topicId = "uc1-input-topic-1";
         TopicName topicName = TopicName.of(projectId, topicId);
         Publisher publisher = null;
-        createTopicExample(projectId, topicId);
 
         try {
             publisher = Publisher.newBuilder(topicName).build();
@@ -48,12 +47,12 @@ public class Send_Data {
             String messageId = future.get();
         }
     }
-
-    public static void createTopicExample(String projectId, String topicId) throws IOException {
-        try (TopicAdminClient topicAdminClient = TopicAdminClient.create()) {
-            TopicName topicName = TopicName.of(projectId, topicId);
-            Topic topic = topicAdminClient.createTopic(topicName);
-            System.out.println("Created topic: " + topic.getName());
-        }
-    }
+//
+//    public static void createTopicExample(String projectId, String topicId) throws IOException {
+//        try (TopicAdminClient topicAdminClient = TopicAdminClient.create()) {
+//            TopicName topicName = TopicName.of(projectId, topicId);
+//            Topic topic = topicAdminClient.createTopic(topicName);
+//            System.out.println("Created topic: " + topic.getName());
+//        }
+//    }
 }
