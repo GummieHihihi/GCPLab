@@ -1,5 +1,3 @@
-package Emulator;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.beam.sdk.Pipeline;
@@ -79,7 +77,6 @@ public class MainPineLineEmulator {
                 .as(Options.class);
         options.setStreaming(true);
         options.setRunner(DirectRunner.class);
-        options.setPubsubRootUrl("http://127.0.0.1:8085");
         run(options);
     }
 

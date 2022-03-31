@@ -1,5 +1,3 @@
-package Emulator;
-
 import com.google.api.core.ApiFuture;
 import com.google.api.gax.grpc.GrpcTransportChannel;
 import com.google.api.gax.rpc.FixedTransportChannelProvider;
