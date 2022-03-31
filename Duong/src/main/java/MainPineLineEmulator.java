@@ -28,15 +28,7 @@ public class MainPineLineEmulator {
          * command-line.
          */
 
-        @Description("BigQuery table name")
-        String getOutputTableName();
 
-        void setOutputTableName(String outputTableName);
-
-        @Description("Input topic name")
-        String getInputTopic();
-
-        void setInputTopic(String inputTopic);
 
 //        @Description("The Cloud Storage bucket used for writing " + "unparseable Pubsub Messages.")
 //        String getDeadletterBucket();
@@ -89,7 +81,7 @@ public class MainPineLineEmulator {
         PCollectionTuple transformOut =
                 pipeline.apply("ReadPubSubMessages", PubsubIO.readStrings()
                                 // Retrieve timestamp information from Pubsub Message attribute
-                                .fromSubscription("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-1"))
+                                .fromSubscription("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-sub-1"))
 //                        .apply("Print", ParDo.of(new DoFn<String, String>() {
 //            @ProcessElement
 //            public void processElement(ProcessContext c) {
