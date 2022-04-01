@@ -1,7 +1,11 @@
+import com.google.api.services.bigquery.model.TableRow;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
+import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
+import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
+import org.apache.beam.sdk.io.gcp.bigquery.TableDestination;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubOptions;
 import org.apache.beam.sdk.options.Description;
@@ -11,8 +15,11 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.*;
 
+import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_NEVER;
+import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
+
 public class MainPineLineEmulator {
-    static final TupleTag<Account> parsedMessages = new TupleTag<Account>() {
+    static final TupleTag<TableRow> parsedMessages = new TupleTag<TableRow>() {
     };
     static final TupleTag<String> unparsedMessages = new TupleTag<String>() {
     };
@@ -27,14 +34,6 @@ public class MainPineLineEmulator {
          * The {@link Options} class provides the custom execution options passed by the executor at the
          * command-line.
          */
-
-
-
-//        @Description("The Cloud Storage bucket used for writing " + "unparseable Pubsub Messages.")
-//        String getDeadletterBucket();
-
-//        void setDeadletterQueue(String deadLetterQueue);
-
     }
 
         /**
@@ -50,7 +49,7 @@ public class MainPineLineEmulator {
                                         String json = context.element();
                                         Gson gson = new Gson();
                                         try {
-                                            Account account = gson.fromJson(json, Account.class);
+                                            TableRow account = gson.fromJson(json, TableRow.class);
                                             context.output(parsedMessages, account);
                                         } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, json);
@@ -63,10 +62,11 @@ public class MainPineLineEmulator {
         }
 
     public static void main(String[] args) {
-//        PipelineOptionsFactory.register(Options.class);
+        PipelineOptionsFactory.register(Options.class);
         Options options = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(Options.class);
+        Pipeline p = Pipeline.create(options);
         options.setStreaming(true);
         options.setRunner(DirectRunner.class);
         run(options);
@@ -74,10 +74,10 @@ public class MainPineLineEmulator {
 
     public static PipelineResult.State run(Options options) {
 
-        // Create the pipeline
         Pipeline pipeline = Pipeline.create(options);
         options.setJobName("Analyze human information" + System.currentTimeMillis());
 
+        // read from pub/sub
         PCollectionTuple transformOut =
                 pipeline.apply("ReadPubSubMessages", PubsubIO.readStrings()
                                 // Retrieve timestamp information from Pubsub Message attribute
@@ -91,20 +91,19 @@ public class MainPineLineEmulator {
 //        }))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
-        transformOut.get(parsedMessages)
-                .apply("Print", ParDo.of(new DoFn<Account, String>() {
-            @ProcessElement
-            public void processElement(ProcessContext c) {
-                Account account = c.element();
-//                System.out.println(line);
-                if (account!= null){
-                    System.out.println(account.toString());
-                }
-            }
-        }));
+            transformOut.get(parsedMessages)
+                .apply("WriteSuccessfulRecordToBQ", BigQueryIO.writeTableRows()
+                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
+                        .withWriteDisposition(WRITE_APPEND)
+                        .withCreateDisposition(CREATE_NEVER)
+                        .to((row) -> {
+                            String tableName = "account";
+                            return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_Duong_Pham_Binh", tableName), "Some destination");
+                        }));
 
         transformOut.get(unparsedMessages)
-                .apply("false message", ParDo.of(new DoFn<String, String>() {
+                .apply("false message handling", ParDo.of(new DoFn<String, String>() {
                     @ProcessElement
                     public void processElement(ProcessContext c) {
                         String text = c.element();
