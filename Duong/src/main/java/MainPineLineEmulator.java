@@ -1,11 +1,11 @@
+import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
+import com.google.api.services.bigquery.model.TableSchema;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
-import org.apache.beam.sdk.io.gcp.bigquery.TableDestination;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubOptions;
 import org.apache.beam.sdk.options.Description;
@@ -15,8 +15,8 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.*;
 
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_NEVER;
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainPineLineEmulator {
     static final TupleTag<TableRow> parsedMessages = new TupleTag<TableRow>() {
@@ -43,7 +43,7 @@ public class MainPineLineEmulator {
             @Override
             public PCollectionTuple expand(PCollection<String> input) {
                 return input
-                        .apply("Json to object account", ParDo.of(new DoFn<String, TableRow>() {
+                        .apply("Json to object account", ParDo.of(new DoFn<String, Account>() {
                                     @ProcessElement
                                     public void processElement(ProcessContext context) {
                                         String json = context.element();
@@ -92,15 +92,22 @@ public class MainPineLineEmulator {
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
             transformOut.get(parsedMessages)
-                .apply("WriteSuccessfulRecordToBQ", BigQueryIO.writeTableRows()
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
-                        .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
-                        .withWriteDisposition(WRITE_APPEND)
-                        .withCreateDisposition(CREATE_NEVER)
-                        .to((row) -> {
-                            String tableName = "account";
-                            return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_Duong_Pham_Binh", tableName), "Some destination");
-                        }));
+                .apply("WriteSuccessfulRecordToBQ", ParDo.of(new DoFn<TableRow, String>() {
+            @ProcessElement
+            public void processElement(ProcessContext c) {
+                List<TableFieldSchema> fields = new ArrayList<>();
+                fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
+                fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
+                fields.add(new TableFieldSchema().setName("street").setType("STRING"));
+                fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
+                fields.add(new TableFieldSchema().setName("userId").setType("STRING"));
+                TableSchema schema = new TableSchema().setFields(fields);
+                BigQueryIO.writeTableRows()
+                        .to("nttdata-c4e-bde:uc1_0.testing")
+                        .withSchema(schema)
+                        .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE);
+            }
+        }));
 
         transformOut.get(unparsedMessages)
                 .apply("false message handling", ParDo.of(new DoFn<String, String>() {

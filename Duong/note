@@ -21,8 +21,7 @@ C:\Users\HP\AppData\Roaming\gcloud\emulators\pubsub
 
 gcloud beta emulators pubsub env-init --data-dir=C:\Users\HP\AppData\Roaming\gcloud\emulators\pubsub
 
-
-mvn exec:java -Dexec.mainClass="Send_Data"
+mvn exec:java -Dexec.mainClass="MainPineLineEmulator"
 
 gcloud beta emulators pubsub start --project=nttdata-c4e-bde
 
