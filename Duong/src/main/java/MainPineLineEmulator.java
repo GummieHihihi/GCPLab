@@ -98,7 +98,7 @@ public class MainPineLineEmulator {
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
             transformOut.get(parsedMessages)
-                    .("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
+                    .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
                 .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                 .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
                 .withWriteDisposition(WRITE_APPEND)
