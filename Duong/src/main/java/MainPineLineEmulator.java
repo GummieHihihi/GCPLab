@@ -43,7 +43,7 @@ public class MainPineLineEmulator {
             @Override
             public PCollectionTuple expand(PCollection<String> input) {
                 return input
-                        .apply("Json to object account", ParDo.of(new DoFn<String, Account>() {
+                        .apply("Json to object account", ParDo.of(new DoFn<String, TableRow>() {
                                     @ProcessElement
                                     public void processElement(ProcessContext context) {
                                         String json = context.element();
