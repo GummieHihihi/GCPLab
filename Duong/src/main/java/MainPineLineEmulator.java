@@ -97,12 +97,21 @@ public class MainPineLineEmulator {
 //        }))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("street").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("userId").setType("STRING"));
+        TableSchema schema = new TableSchema().setFields(fields);
+
             transformOut.get(parsedMessages)
                     .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
                 .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                 .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
                 .withWriteDisposition(WRITE_APPEND)
                 .withCreateDisposition(CREATE_IF_NEEDED)
+                            .withSchema(schema)
                 .to((row) -> {
                     String tableName = "testing";
                     return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
