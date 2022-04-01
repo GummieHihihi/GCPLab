@@ -10,7 +10,6 @@ import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.TableDestination;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubOptions;
-import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
@@ -19,10 +18,6 @@ import org.apache.beam.sdk.values.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_NEVER;
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 
 public class MainPineLineEmulator {
     static final TupleTag<TableRow> parsedMessages = new TupleTag<TableRow>() {
@@ -78,7 +73,7 @@ public class MainPineLineEmulator {
         run(options);
     }
 
-    public static PipelineResult.State run(Options options) {
+    public static PipelineResult run(Options options) {
 
         Pipeline pipeline = Pipeline.create(options);
         options.setJobName("Analyze human information" + System.currentTimeMillis());
@@ -113,7 +108,7 @@ public class MainPineLineEmulator {
                             })
                             .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                             .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
-                            .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE)
+                            .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
                             .withSchema(schema)
                             .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
         );
@@ -130,7 +125,7 @@ public class MainPineLineEmulator {
 //
 //                    }
 //                }));
-        return pipeline.run().waitUntilFinish();
+        return pipeline.run();
     }
 
 }
