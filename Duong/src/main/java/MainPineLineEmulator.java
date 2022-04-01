@@ -91,23 +91,19 @@ public class MainPineLineEmulator {
 //        }))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("street").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("userId").setType("STRING"));
+        TableSchema schema = new TableSchema().setFields(fields);
             transformOut.get(parsedMessages)
-                .apply("WriteSuccessfulRecordToBQ", ParDo.of(new DoFn<TableRow, String>() {
-            @ProcessElement
-            public void processElement(ProcessContext c) {
-                List<TableFieldSchema> fields = new ArrayList<>();
-                fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
-                fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
-                fields.add(new TableFieldSchema().setName("street").setType("STRING"));
-                fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
-                fields.add(new TableFieldSchema().setName("userId").setType("STRING"));
-                TableSchema schema = new TableSchema().setFields(fields);
-                BigQueryIO.writeTableRows()
-                        .to("nttdata-c4e-bde:uc1_0.testing")
-                        .withSchema(schema)
-                        .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE);
-            }
-        }));
+                    .apply(BigQueryIO.writeTableRows()
+                            .to("nttdata-c4e-bde:uc1_0.testing")
+                            .withSchema(schema)
+                            .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE));
+
 
         transformOut.get(unparsedMessages)
                 .apply("false message handling", ParDo.of(new DoFn<String, String>() {
