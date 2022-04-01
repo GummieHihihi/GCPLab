@@ -107,29 +107,29 @@ public class MainPineLineEmulator {
 
             transformOut.get(parsedMessages)
                     .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
-                .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
-                .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
-                .withWriteDisposition(WRITE_APPEND)
-                .withCreateDisposition(CREATE_IF_NEEDED)
+                            .to((row) -> {
+                                String tableName = "testing";
+                                return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
+                            })
+                            .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                            .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
+                            .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE)
                             .withSchema(schema)
-                .to((row) -> {
-                    String tableName = "testing";
-                    return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
-                })
+                            .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
         );
 
 
-        transformOut.get(unparsedMessages)
-                .apply("false message handling", ParDo.of(new DoFn<String, String>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        String text = c.element();
-                        if (text!=null){
-                            System.out.println(text);
-                        }
-
-                    }
-                }));
+//        transformOut.get(unparsedMessages)
+//                .apply("false message handling", ParDo.of(new DoFn<String, String>() {
+//                    @ProcessElement
+//                    public void processElement(ProcessContext c) {
+//                        String text = c.element();
+//                        if (text!=null){
+//                            System.out.println(text);
+//                        }
+//
+//                    }
+//                }));
         return pipeline.run().waitUntilFinish();
     }
 
