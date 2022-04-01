@@ -94,17 +94,16 @@ public class MainPineLineEmulator {
         TableSchema schema = new TableSchema().setFields(fields);
 
             transformOut.get(parsedMessages)
-                    .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
-                            .to((row) -> {
-                                String tableName = "testing";
-                                return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
-                            })
-                            .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
-                            .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
-                            .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
-                            .withSchema(schema)
-                            .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
-        );
+                    .apply("false message handling", ParDo.of(new DoFn<TableRow, String>() {
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        TableRow text = c.element();
+                        if (text!=null){
+                            System.out.println(text);
+                        }
+
+                    }
+                }));
 
 
 //        transformOut.get(unparsedMessages)
