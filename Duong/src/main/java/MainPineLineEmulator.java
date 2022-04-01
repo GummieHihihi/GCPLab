@@ -6,6 +6,8 @@ import com.google.gson.JsonSyntaxException;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
+import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
+import org.apache.beam.sdk.io.gcp.bigquery.TableDestination;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubOptions;
 import org.apache.beam.sdk.options.Description;
@@ -17,6 +19,10 @@ import org.apache.beam.sdk.values.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
+import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_NEVER;
+import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 
 public class MainPineLineEmulator {
     static final TupleTag<TableRow> parsedMessages = new TupleTag<TableRow>() {
@@ -91,18 +97,17 @@ public class MainPineLineEmulator {
 //        }))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
-        List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("street").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("userId").setType("STRING"));
-        TableSchema schema = new TableSchema().setFields(fields);
             transformOut.get(parsedMessages)
-                    .apply(BigQueryIO.writeTableRows()
-                            .to("nttdata-c4e-bde:uc1_0.testing")
-                            .withSchema(schema)
-                            .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_TRUNCATE));
+                    .("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
+                .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
+                .withWriteDisposition(WRITE_APPEND)
+                .withCreateDisposition(CREATE_IF_NEEDED)
+                .to((row) -> {
+                    String tableName = "testing";
+                    return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
+                })
+        );
 
 
         transformOut.get(unparsedMessages)
