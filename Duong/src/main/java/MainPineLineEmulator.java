@@ -3,7 +3,6 @@ import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import org.apache.beam.runners.dataflow.DataflowRunner;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
@@ -70,7 +69,7 @@ public class MainPineLineEmulator {
                 .as(Options.class);
         Pipeline p = Pipeline.create(options);
         options.setStreaming(true);
-        options.setRunner(DataflowRunner.class);
+        options.setRunner(DirectRunner.class);
         run(options);
     }
 
