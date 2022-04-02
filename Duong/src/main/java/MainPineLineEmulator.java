@@ -47,7 +47,7 @@ public class MainPineLineEmulator {
                                         Gson gson = new Gson();
                                         try {
                                             JSONObject jsonObject = new JSONObject(jsonString);
-                                            int personId = Integer.parseInt(jsonObject.getJSONObject("userId").toString());
+                                            int personId = jsonObject.getInt("userId");
                                             String firstName = jsonObject.getJSONObject("firstName").toString();
                                             String surName = jsonObject.getJSONObject("surName").toString();
                                             String lastName = jsonObject.getJSONObject("lastName").toString();
