@@ -1,6 +1,4 @@
-import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
-import com.google.api.services.bigquery.model.TableSchema;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.beam.sdk.Pipeline;
@@ -16,9 +14,6 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.*;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainPineLineEmulator {
     static final TupleTag<TableRow> parsedMessages = new TupleTag<TableRow>() {
@@ -52,10 +47,10 @@ public class MainPineLineEmulator {
                                         Gson gson = new Gson();
                                         try {
                                             JSONObject jsonObject = new JSONObject(jsonString);
-                                            int personId = jsonObject.getInt("userId");
-                                            String firstName = jsonObject.getString("firstName");
-                                            String surName = jsonObject.getString("surName");
-                                            String lastName = jsonObject.getString("lastName");
+                                            int personId = Integer.parseInt(jsonObject.getJSONObject("userId").toString());
+                                            String firstName = jsonObject.getJSONObject("firstName").toString();
+                                            String surName = jsonObject.getJSONObject("surName").toString();
+                                            String lastName = jsonObject.getJSONObject("lastName").toString();
                                             TableRow account = new TableRow()
                                                     .set("id", personId)
                                                     .set("name", firstName + " " + lastName)
