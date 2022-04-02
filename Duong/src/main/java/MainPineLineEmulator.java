@@ -15,6 +15,7 @@ import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.*;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,13 +48,21 @@ public class MainPineLineEmulator {
                         .apply("Json to object account", ParDo.of(new DoFn<String, TableRow>() {
                                     @ProcessElement
                                     public void processElement(ProcessContext context) {
-                                        String json = context.element();
+                                        String jsonString = context.element();
                                         Gson gson = new Gson();
                                         try {
-                                            TableRow account = gson.fromJson(json, TableRow.class);
+                                            JSONObject jsonObject = new JSONObject(jsonString);
+                                            int personId = jsonObject.getInt("userId");
+                                            String firstName = jsonObject.getString("firstName");
+                                            String surName = jsonObject.getString("surName");
+                                            String lastName = jsonObject.getString("lastName");
+                                            TableRow account = new TableRow()
+                                                    .set("id", personId)
+                                                    .set("name", firstName + " " + lastName)
+                                                    .set("surName", surName);
                                             context.output(parsedMessages, account);
                                         } catch (JsonSyntaxException e) {
-                                            context.output(unparsedMessages, json);
+                                            context.output(unparsedMessages, jsonString);
                                         }
 
                                     }
@@ -85,25 +94,24 @@ public class MainPineLineEmulator {
                                 .fromSubscription("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-sub-1"))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
-        List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("street").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("userId").setType("Float"));
-        TableSchema schema = new TableSchema().setFields(fields);
+//        List<TableFieldSchema> fields = new ArrayList<>();
+//        fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
+//        fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
+//        fields.add(new TableFieldSchema().setName("street").setType("STRING"));
+//        fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
+//        fields.add(new TableFieldSchema().setName("userId").setType("Float"));
+//        TableSchema schema = new TableSchema().setFields(fields);
 
             transformOut.get(parsedMessages)
                     .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
                             .to((row) -> {
-                                String tableName = "testing";
+                                String tableName = "account";
                                 return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
                             })
                             .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                             .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
                             .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
-                            .withSchema(schema)
-                            .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
+                            .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_NEVER)
         );
 
 

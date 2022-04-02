@@ -12,6 +12,7 @@ public class GenerateData {
 
         String name = faker.name().fullName();
         String firstName = faker.name().firstName();
+        String surName = faker.name().nameWithMiddle();
         String lastName = faker.name().lastName();
         String streetAddress = faker.address().streetAddress();
 
@@ -20,6 +21,7 @@ public class GenerateData {
         json.put("userId", personId);
         json.put("fullName", name);
         json.put("firstName", firstName);
+        json.put("surName", surName);
         json.put("lastName", lastName);
         json.put("street", streetAddress);
 
