@@ -43,15 +43,18 @@ public class MainPineLineEmulator {
                         .apply("Json to object account", ParDo.of(new DoFn<String, TableRow>() {
                                     @ProcessElement
                                     public void processElement(ProcessContext context) {
-                                        String jsonString = context.element();
                                         Gson gson = new Gson();
+                                        String jsonString = context.element();
                                         try {
                                             TableRow account = gson.fromJson(jsonString, TableRow.class);
+                                            System.out.println(account);
                                             context.output(parsedMessages, account);
                                         } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, jsonString);
                                         }
-
+                                        catch (IllegalArgumentException e){
+                                            context.output(unparsedMessages, jsonString);
+                                        }
                                     }
                                 })
                                 .withOutputTags(parsedMessages, TupleTagList.of(unparsedMessages)));
@@ -80,14 +83,6 @@ public class MainPineLineEmulator {
                                 // Retrieve timestamp information from Pubsub Message attribute
                                 .fromSubscription("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-sub-1"))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
-
-//        List<TableFieldSchema> fields = new ArrayList<>();
-//        fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
-//        fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
-//        fields.add(new TableFieldSchema().setName("street").setType("STRING"));
-//        fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
-//        fields.add(new TableFieldSchema().setName("userId").setType("Float"));
-//        TableSchema schema = new TableSchema().setFields(fields);
 
             transformOut.get(parsedMessages)
                     .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()

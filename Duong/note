@@ -40,4 +40,6 @@ send data :
 ---------------------------
 mvn clean compile
 mvn exec:java -Dexec.mainClass=test.Main -Dexec.args="'nttdata-c4e-bde' 'uc1-input-topic-1'"
-mvn exec:java -Dexec.mainClass="MainPineLineEmulator" --BQProject=nttdata-c4e-bde --TopicId=uc1-input-topic-1
+
+dataflow job :
+---------------------------
