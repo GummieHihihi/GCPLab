@@ -50,7 +50,7 @@ public class MainPineLineEmulator {
                                             System.out.println(account);
                                             context.output(parsedMessages, account);
                                         } catch (JsonSyntaxException e) {
-                                            System.out.println(jsonString);
+                                            System.out.println(" junk : " + jsonString);
                                             context.output(unparsedMessages, jsonString);
                                         }
                                         catch (IllegalArgumentException e){
