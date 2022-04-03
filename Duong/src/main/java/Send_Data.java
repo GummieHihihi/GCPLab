@@ -16,26 +16,11 @@ import java.util.concurrent.ExecutionException;
 
 public class Send_Data {
 
-    public interface MyOptions extends DataflowPipelineOptions, PipelineOptions {
-        @Description("BigQuery project")
-        String getBQProject();
-
-        void setBQProject(String value);
-
-        @Description("BigQuery dataset")
-        String getTopicId();
-
-        void setTopicId(String value);
-    }
-
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
-        MyOptions options = PipelineOptionsFactory.fromArgs(args)
-                .withValidation()
-                .as(MyOptions.class);
 //        String projectId = "nttdata-c4e-bde";
 //        String topicId = "uc1-input-topic-1";
-        final String projectId = options.getBQProject();
-        final String topicId = options.getTopicId();
+        final String projectId = args[0];
+        final String topicId = args[1];
         TopicName topicName = TopicName.of(projectId, topicId);
         Publisher publisher = null;
 
