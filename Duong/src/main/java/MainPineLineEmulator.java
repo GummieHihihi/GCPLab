@@ -47,14 +47,14 @@ public class MainPineLineEmulator {
                                         String jsonString = context.element();
                                         Gson gson = new Gson();
                                         try {
-                                            JSONObject account = new Gson().fromJson(jsonString, JSONObject.class);
+                                            JSONObject account = new JSONObject(jsonString);
                                             TableRow row = new TableRow()
-                                                    .set("id", Integer.parseInt(String.valueOf(account.getJSONObject("userId"))))
+                                                    .set("id", account.get("userId"))
                                                     .set("name", account.getString("fullName"))
                                                     .set("surname", account.getString("surName"));
-                                            System.out.println(row);
+                                            System.out.println(row.get("id"));
                                             context.output(parsedMessages, row);
-                                        } catch (JsonSyntaxException e) {
+                                        } catch (Exception e) {
                                             context.output(unparsedMessages, jsonString);
                                         }
 
@@ -84,16 +84,8 @@ public class MainPineLineEmulator {
         PCollectionTuple transformOut =
                 pipeline.apply("ReadPubSubMessages", PubsubIO.readStrings()
                                 // Retrieve timestamp information from Pubsub Message attribute
-                                .fromSubscription("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-sub-1"))
+                                .fromSubscription("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-sub-0"))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
-
-//        List<TableFieldSchema> fields = new ArrayList<>();
-//        fields.add(new TableFieldSchema().setName("firstName").setType("STRING"));
-//        fields.add(new TableFieldSchema().setName("lastName").setType("STRING"));
-//        fields.add(new TableFieldSchema().setName("street").setType("STRING"));
-//        fields.add(new TableFieldSchema().setName("fullName").setType("STRING"));
-//        fields.add(new TableFieldSchema().setName("userId").setType("Float"));
-//        TableSchema schema = new TableSchema().setFields(fields);
 
             transformOut.get(parsedMessages)
                     .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()

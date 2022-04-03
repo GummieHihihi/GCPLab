@@ -19,7 +19,7 @@ public class Send_Data {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
 //        String projectId = "nttdata-c4e-bde";
-//        String topicId = "uc1-input-topic-1";
+//        String topicId = "uc1-input-topic-0";
         final String projectId = args[0];
         final String topicId = args[1];
         TopicName topicName = TopicName.of(projectId, topicId);
@@ -34,7 +34,7 @@ public class Send_Data {
 
         GenerateData dataFactory = new GenerateData();
 
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 15; i++) {
             System.out.printf("Publish message %dth in Topic \n", i);
 //            #generate right wrong topic
             Random random = new Random();
