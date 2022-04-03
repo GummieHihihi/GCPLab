@@ -49,12 +49,14 @@ public class MainPineLineEmulator {
                                             TableRow account = gson.fromJson(jsonString, TableRow.class);
                                             System.out.println(account);
                                             context.output(parsedMessages, account);
-                                        } catch (JsonSyntaxException e) {
-                                            System.out.println(" junk : " + jsonString);
-                                            context.output(unparsedMessages, jsonString);
-                                        }
-                                        catch (IllegalArgumentException e){
-                                            context.output(unparsedMessages, "null value");
+                                        } catch (Exception e) {
+                                            if(jsonString != null){
+                                                System.out.println(" junk : " + jsonString);
+                                                context.output(unparsedMessages, jsonString);
+                                            }
+                                            else {
+                                                context.output(unparsedMessages, "null value");
+                                            }
                                         }
                                     }
                                 })
