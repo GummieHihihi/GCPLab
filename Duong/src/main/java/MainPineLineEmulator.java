@@ -54,7 +54,7 @@ public class MainPineLineEmulator {
                                             context.output(unparsedMessages, jsonString);
                                         }
                                         catch (IllegalArgumentException e){
-                                            context.output(unparsedMessages, jsonString);
+                                            context.output(unparsedMessages, "null value");
                                         }
                                     }
                                 })
