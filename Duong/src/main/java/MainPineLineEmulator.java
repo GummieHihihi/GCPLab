@@ -46,16 +46,7 @@ public class MainPineLineEmulator {
                                         String jsonString = context.element();
                                         Gson gson = new Gson();
                                         try {
-                                            JSONObject jsonObject = new JSONObject(jsonString);
-                                            int personId = jsonObject.getInt("userId");
-                                            String firstName = jsonObject.getString("firstName");
-                                            System.out.println(firstName);
-//                                            String surName = jsonObject.getString("surName");
-                                            String lastName = jsonObject.getString("lastName");
-                                            TableRow account = new TableRow()
-                                                    .set("id", personId)
-                                                    .set("name", firstName + " " + lastName)
-                                                    .set("surName", lastName);
+                                            TableRow account = gson.fromJson(jsonString, TableRow.class);
                                             context.output(parsedMessages, account);
                                         } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, jsonString);
