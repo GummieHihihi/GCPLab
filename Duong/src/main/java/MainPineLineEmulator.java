@@ -44,18 +44,20 @@ public class MainPineLineEmulator {
                                     @ProcessElement
                                     public void processElement(ProcessContext context) {
                                         Gson gson = new Gson();
-                                        String jsonString = context.element();
-                                        try {
-                                            TableRow account = gson.fromJson(jsonString, TableRow.class);
-                                            System.out.println(account);
-                                            context.output(parsedMessages, account);
-                                        } catch (Exception e) {
-                                            if(jsonString != null){
-                                                System.out.println(" junk : " + jsonString);
-                                                context.output(unparsedMessages, jsonString);
-                                            }
-                                            else {
-                                                context.output(unparsedMessages, "null value");
+                                        if(context.element() == null){
+                                            context.output(unparsedMessages, "null value");
+                                        }
+                                        else{
+                                            try {
+                                                String jsonString = context.element();
+                                                TableRow account = gson.fromJson(jsonString, TableRow.class);
+                                                System.out.println(account);
+                                                context.output(parsedMessages, account);
+                                            } catch (Exception e) {
+                                                if(context.element() != null){
+                                                    System.out.println(" junk : " + context.element());
+                                                    context.output(unparsedMessages, context.element());
+                                                }
                                             }
                                         }
                                     }
@@ -87,6 +89,7 @@ public class MainPineLineEmulator {
                                 .fromSubscription("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-sub-1"))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
+        System.out.println("DONE STEP 1");
             transformOut.get(parsedMessages)
                     .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
                             .to((row) -> {
