@@ -1,5 +1,6 @@
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
@@ -14,8 +15,6 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.*;
 import org.json.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class MainPineLineEmulator {
     static final TupleTag<TableRow> parsedMessages = new TupleTag<TableRow>() {
@@ -48,15 +47,14 @@ public class MainPineLineEmulator {
                                         String jsonString = context.element();
                                         Gson gson = new Gson();
                                         try {
-                                            JSONParser parser = new JSONParser();
-                                            JSONObject account = (JSONObject) parser.parse(jsonString);
+                                            JSONObject account = new Gson().fromJson(jsonString, JSONObject.class);
                                             TableRow row = new TableRow()
                                                     .set("id", account.getInt("userId"))
                                                     .set("name", account.getString("fullName"))
                                                     .set("surname", account.getString("surName"));
                                             System.out.println(row);
                                             context.output(parsedMessages, row);
-                                        } catch (JsonSyntaxException | ParseException e) {
+                                        } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, jsonString);
                                         }
 
