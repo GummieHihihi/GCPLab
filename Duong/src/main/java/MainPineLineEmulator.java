@@ -95,14 +95,14 @@ public class MainPineLineEmulator {
 
             transformOut.get(parsedMessages)
                     .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
-                            .to((row) -> {
-                                String tableName = "account";
-                                return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
-                            })
                             .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                             .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
                             .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
                             .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_NEVER)
+                            .to((row) -> {
+                        String tableName = "account";
+                        return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
+                    })
         );
 
 
