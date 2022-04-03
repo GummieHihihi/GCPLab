@@ -46,8 +46,12 @@ public class MainPineLineEmulator {
                                         String jsonString = context.element();
                                         Gson gson = new Gson();
                                         try {
-                                            TableRow account = gson.fromJson(jsonString, TableRow.class);
-                                            context.output(parsedMessages, account);
+                                            JSONObject account = new JSONObject(jsonString);
+                                            TableRow row = new TableRow()
+                                                    .set("id", account.getInt("userId"))
+                                                    .set("name", account.getString("fullName"))
+                                                    .set("surname", account.getString("surName"));
+                                            context.output(parsedMessages, row);
                                         } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, jsonString);
                                         }
