@@ -30,3 +30,13 @@ C:\Users\HP\Desktop\GitCode\GCPLab\Duong
 bug :
  An exception occured while executing the Java class. Encountered checked exception when constructing an instance from factory method DirectRunner#fromOptions(interface org.apache.beam.sdk.options.PipelineOptions): Class org.apache.beam.model.pipeline.v1.RunnerApi$StandardPTransforms$Primitives does not implement the requested interface org.apache.beam.vendor.grpc.v1_13_1.com.google.protobuf.ProtocolMessageEnum
  -> dependency not in the same version
+
+
+*************************
+note for running
+*************************
+
+send data :
+---------------------------
+mvn clean compile
+mvn exec:java -Dexec.mainClass="MainPineLineEmulator" --BQProject=nttdata-c4e-bde --TopicId=uc1-input-topic-1

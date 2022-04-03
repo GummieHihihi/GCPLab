@@ -1,4 +1,5 @@
 import com.github.javafaker.Faker;
+import org.apache.beam.sdk.options.Description;
 import org.json.JSONObject;
 
 import java.nio.charset.Charset;
@@ -10,20 +11,17 @@ public class GenerateData {
 
     public String createRightMessage(int personId){
 
+
+
         String name = faker.name().fullName();
-        String firstName = faker.name().firstName();
         String surName = faker.name().nameWithMiddle();
-        String lastName = faker.name().lastName();
-        String streetAddress = faker.address().streetAddress();
 
         JSONObject json = new JSONObject();
 
         json.put("userId", personId);
         json.put("fullName", name);
-        json.put("firstName", firstName);
         json.put("surName", surName);
-        json.put("lastName", lastName);
-        json.put("street", streetAddress);
+
 
         String message = json.toString();
         return message;

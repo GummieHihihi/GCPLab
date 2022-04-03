@@ -5,6 +5,10 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.Topic;
 import com.google.pubsub.v1.TopicName;
+import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
+import org.apache.beam.sdk.options.Description;
+import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.options.PipelineOptionsFactory;
 
 import java.io.IOException;
 import java.util.Random;
@@ -12,9 +16,26 @@ import java.util.concurrent.ExecutionException;
 
 public class Send_Data {
 
+    public interface MyOptions extends DataflowPipelineOptions, PipelineOptions {
+        @Description("BigQuery project")
+        String getBQProject();
+
+        void setBQProject(String value);
+
+        @Description("BigQuery dataset")
+        String getTopicId();
+
+        void setTopicId(String value);
+    }
+
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
-        String projectId = "nttdata-c4e-bde";
-        String topicId = "uc1-input-topic-1";
+        MyOptions options = PipelineOptionsFactory.fromArgs(args)
+                .withValidation()
+                .as(MyOptions.class);
+//        String projectId = "nttdata-c4e-bde";
+//        String topicId = "uc1-input-topic-1";
+        final String projectId = options.getBQProject();
+        final String topicId = options.getTopicId();
         TopicName topicName = TopicName.of(projectId, topicId);
         Publisher publisher = null;
 
@@ -27,17 +48,17 @@ public class Send_Data {
 
         GenerateData dataFactory = new GenerateData();
 
-        for (int i = 0; i < 50;i++){
+        for (int i = 0; i < 50; i++) {
             System.out.printf("Publish message %dth in Topic \n", i);
 //            #generate right wrong topic
             Random random = new Random();
             boolean rightWrongCase = random.nextBoolean();
             String record = "";
-            if(rightWrongCase){
+            if (rightWrongCase) {
                 record = dataFactory.createRightMessage(i);
                 System.out.println(record);
 
-            }else{
+            } else {
                 record = dataFactory.createWrongMessage();
                 System.out.println(record);
             }
@@ -47,12 +68,4 @@ public class Send_Data {
             String messageId = future.get();
         }
     }
-//
-//    public static void createTopicExample(String projectId, String topicId) throws IOException {
-//        try (TopicAdminClient topicAdminClient = TopicAdminClient.create()) {
-//            TopicName topicName = TopicName.of(projectId, topicId);
-//            Topic topic = topicAdminClient.createTopic(topicName);
-//            System.out.println("Created topic: " + topic.getName());
-//        }
-//    }
 }
