@@ -13,6 +13,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class Send_Data {
 
@@ -52,5 +53,9 @@ public class Send_Data {
             ApiFuture<String> future = publisher.publish(pubsubMessage);
             String messageId = future.get();
         }
-    }
+            if (publisher != null) {
+                // When finished with the publisher, shutdown to free up resources.
+                publisher.shutdown();
+                publisher.awaitTermination(1, TimeUnit.MINUTES);
+            }
 }
