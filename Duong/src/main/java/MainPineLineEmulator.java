@@ -51,6 +51,7 @@ public class MainPineLineEmulator {
                                                     .set("id", account.getInt("userId"))
                                                     .set("name", account.getString("fullName"))
                                                     .set("surname", account.getString("surName"));
+                                            System.out.println(row);
                                             context.output(parsedMessages, row);
                                         } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, jsonString);
