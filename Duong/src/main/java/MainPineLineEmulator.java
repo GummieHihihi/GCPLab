@@ -49,6 +49,7 @@ public class MainPineLineEmulator {
                                             JSONObject jsonObject = new JSONObject(jsonString);
                                             int personId = jsonObject.getInt("userId");
                                             String firstName = jsonObject.getString("firstName");
+                                            System.out.println(firstName);
 //                                            String surName = jsonObject.getString("surName");
                                             String lastName = jsonObject.getString("lastName");
                                             TableRow account = new TableRow()
