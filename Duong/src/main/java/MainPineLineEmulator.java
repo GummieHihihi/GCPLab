@@ -44,10 +44,15 @@ public class MainPineLineEmulator {
                                     @ProcessElement
                                     public void processElement(ProcessContext context) {
                                         String jsonString = context.element();
+                                        System.out.println(jsonString);
                                         Gson gson = new Gson();
                                         try {
-                                            TableRow account = gson.fromJson(jsonString, TableRow.class);
-                                            context.output(parsedMessages, account);
+                                            Account account = gson.fromJson(jsonString, Account.class);
+                                            TableRow row = new TableRow()
+                                                    .set("id", account.getUserId())
+                                                    .set("name", account.getFullName())
+                                                    .set("surname", account.getSurName());
+                                            context.output(parsedMessages, row);
                                         } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, jsonString);
                                         }

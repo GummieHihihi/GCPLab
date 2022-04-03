@@ -13,20 +13,28 @@ import java.io.Serializable;
  */
 @DefaultSchema(JavaFieldSchema.class)
 public class Account implements Serializable{
-    public int userId;
+    private int userId;
 //    @javax.annotation.Nullable Double lat;
 //    @javax.annotation.Nullable Double lng;
-    public String firstName;
-    public String lastName;
-    public String street;
+    private String fullName;
+    private String surName;
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public String getSurName() {
+        return surName;
+    }
 
     @Override
     public String toString() {
         return "Account{" +
                 "userId='" + userId + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", street='" + street + '\'' +
-                '}';
+                ", surName='" + surName;
     }
 }
