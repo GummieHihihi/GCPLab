@@ -49,12 +49,12 @@ public class MainPineLineEmulator {
                                             JSONObject jsonObject = new JSONObject(jsonString);
                                             int personId = jsonObject.getInt("userId");
                                             String firstName = jsonObject.getString("firstName");
-                                            String surName = jsonObject.getString("surName");
+//                                            String surName = jsonObject.getString("surName");
                                             String lastName = jsonObject.getString("lastName");
                                             TableRow account = new TableRow()
                                                     .set("id", personId)
                                                     .set("name", firstName + " " + lastName)
-                                                    .set("surName", surName);
+                                                    .set("surName", lastName);
                                             context.output(parsedMessages, account);
                                         } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, jsonString);
