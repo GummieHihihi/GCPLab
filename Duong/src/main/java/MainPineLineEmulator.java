@@ -48,6 +48,7 @@ public class MainPineLineEmulator {
                                         Gson gson = new Gson();
                                         try {
                                             Account account = gson.fromJson(jsonString, Account.class);
+                                            System.out.println(account.toString());
                                             TableRow row = new TableRow()
                                                     .set("id", account.getUserId())
                                                     .set("name", account.getFullName())
