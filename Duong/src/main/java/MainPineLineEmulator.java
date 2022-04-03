@@ -49,7 +49,7 @@ public class MainPineLineEmulator {
                                         try {
                                             JSONObject account = new Gson().fromJson(jsonString, JSONObject.class);
                                             TableRow row = new TableRow()
-                                                    .set("id", account.getInt("userId"))
+                                                    .set("id", Integer.parseInt(String.valueOf(account.getJSONObject("userId"))))
                                                     .set("name", account.getString("fullName"))
                                                     .set("surname", account.getString("surName"));
                                             System.out.println(row);
