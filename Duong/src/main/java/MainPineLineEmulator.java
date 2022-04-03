@@ -14,6 +14,8 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.*;
 import org.json.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class MainPineLineEmulator {
     static final TupleTag<TableRow> parsedMessages = new TupleTag<TableRow>() {
@@ -46,14 +48,15 @@ public class MainPineLineEmulator {
                                         String jsonString = context.element();
                                         Gson gson = new Gson();
                                         try {
-                                            JSONObject account = new JSONObject(jsonString);
+                                            JSONParser parser = new JSONParser();
+                                            JSONObject account = (JSONObject) parser.parse(jsonString);
                                             TableRow row = new TableRow()
                                                     .set("id", account.getInt("userId"))
                                                     .set("name", account.getString("fullName"))
                                                     .set("surname", account.getString("surName"));
                                             System.out.println(row);
                                             context.output(parsedMessages, row);
-                                        } catch (JsonSyntaxException e) {
+                                        } catch (JsonSyntaxException | ParseException e) {
                                             context.output(unparsedMessages, jsonString);
                                         }
 
