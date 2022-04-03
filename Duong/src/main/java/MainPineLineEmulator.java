@@ -1,7 +1,12 @@
+import com.google.api.core.ApiFuture;
 import com.google.api.services.bigquery.model.TableRow;
+import com.google.cloud.pubsub.v1.Publisher;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.google.protobuf.ByteString;
+import com.google.pubsub.v1.PubsubMessage;
+import com.google.pubsub.v1.TopicName;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
@@ -15,6 +20,9 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.*;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class MainPineLineEmulator {
     static final TupleTag<TableRow> parsedMessages = new TupleTag<TableRow>() {
@@ -99,18 +107,28 @@ public class MainPineLineEmulator {
                             .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_NEVER)
         );
 
+        transformOut.get(unparsedMessages)
+                .apply("false message handling", ParDo.of(new DoFn<String, String>() {
+                    @ProcessElement
+                    public void processElement(ProcessContext c) throws ExecutionException, InterruptedException {
+                        TopicName topicName = TopicName.of("nttdata-c4e-bde","uc1-dlq-topic-1");
+                        Publisher publisher = null;
 
-//        transformOut.get(unparsedMessages)
-//                .apply("false message handling", ParDo.of(new DoFn<String, String>() {
-//                    @ProcessElement
-//                    public void processElement(ProcessContext c) {
-//                        String text = c.element();
-//                        if (text!=null){
-//                            System.out.println(text);
-//                        }
-//
-//                    }
-//                }));
+                        try {
+                            publisher = Publisher.newBuilder(topicName).build();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        String text = c.element();
+                        if (text!=null){
+                            ByteString data = ByteString.copyFromUtf8(text);
+                            PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
+                            ApiFuture<String> future = publisher.publish(pubsubMessage);
+                            String messageId = future.get();
+                        }
+                    }
+                }));
         return pipeline.run();
     }
 
