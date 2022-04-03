@@ -34,7 +34,7 @@ public class Send_Data {
 
         GenerateData dataFactory = new GenerateData();
 
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 500; i++) {
             System.out.printf("Publish message %dth in Topic \n", i);
 //            #generate right wrong topic
             Random random = new Random();
