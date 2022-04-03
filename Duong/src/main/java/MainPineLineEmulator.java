@@ -44,19 +44,14 @@ public class MainPineLineEmulator {
                                     @ProcessElement
                                     public void processElement(ProcessContext context) {
                                         String jsonString = context.element();
-                                        System.out.println(jsonString);
                                         Gson gson = new Gson();
                                         try {
-                                            Account account = gson.fromJson(jsonString, Account.class);
-                                            System.out.println(account.toString());
-                                            TableRow row = new TableRow()
-                                                    .set("id", account.getUserId())
-                                                    .set("name", account.getFullName())
-                                                    .set("surname", account.getSurName());
-                                            context.output(parsedMessages, row);
+                                            TableRow account = gson.fromJson(jsonString, TableRow.class);
+                                            context.output(parsedMessages, account);
                                         } catch (JsonSyntaxException e) {
                                             context.output(unparsedMessages, jsonString);
                                         }
+
                                     }
                                 })
                                 .withOutputTags(parsedMessages, TupleTagList.of(unparsedMessages)));
@@ -96,14 +91,14 @@ public class MainPineLineEmulator {
 
             transformOut.get(parsedMessages)
                     .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
+                            .to((row) -> {
+                                String tableName = "account";
+                                return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
+                            })
                             .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                             .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
                             .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
                             .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_NEVER)
-                            .to((row) -> {
-                        String tableName = "account";
-                        return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
-                    })
         );
 
 
