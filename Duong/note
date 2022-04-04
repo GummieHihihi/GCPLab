@@ -44,6 +44,7 @@ mvn exec:java -Dexec.mainClass=test.Main -Dexec.args="'nttdata-c4e-bde' 'uc1-inp
 dataflow job :
 ---------------------------
 mvn exec:java -Dexec.mainClass="MainPineLineEmulator" -Dargs="--runner=DirectRunner
+--project=nttdata-c4e-bde
 --BQProject=nttdata-c4e-bde
 --BQDataset=uc1_1
 --jobName=usecase1-labid-1
