@@ -43,14 +43,11 @@ mvn exec:java -Dexec.mainClass=test.Main -Dexec.args="'nttdata-c4e-bde' 'uc1-inp
 
 dataflow job :
 ---------------------------
-mvn exec:java -Dexec.mainClass="MainPineLineEmulator" -Dargs=" --runner=DataflowRunner
---gcpTempLocation=gs://c4e-uc1-dataflow-temp-$LAB_ID/temp
---stagingLocation=gs://c4e-uc1-dataflow-temp-$LAB_ID/staging
+mvn exec:java -Dexec.mainClass="MainPineLineEmulator" -Dargs=" --runner=DirectRunner
 --BQProject=nttdata-c4e-bde
 --BQDataset=uc1_1
 --jobName=usecase1-labid-1
 --pubSubProject=nttdata-c4e-bde
---subscription=uc1-input-topic-sub-1
 --region=europe-west4
 --maxNumWorkers=1
 --workerMachineType=n1-standard-1

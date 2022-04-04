@@ -98,8 +98,8 @@ public class MainPineLineEmulator {
         Options options = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(Options.class);
-        System.out.println(options);
-        
+        System.out.println(options.getBQProject());
+
         final String SUBSCRIPTION = String.format("projects/%s/subscriptions/%s", options.getPubSubProject(), options.getSubscription());
 
         final String ERROR_QUEUE = String.format("projects/%s/topics/%s", options.getPubSubProject(), options.getDLQ());
