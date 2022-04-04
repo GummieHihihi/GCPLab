@@ -105,6 +105,8 @@ public class MainPineLineEmulator {
         final String BQ_PROJECT = options.getBQProject();
         final String BQ_DATASET = options.getBQDataset();
 
+        System.out.println(options);
+
         Pipeline pipeline = Pipeline.create(options);
         options.setJobName("Analyze human information" + System.currentTimeMillis());
 
