@@ -98,14 +98,13 @@ public class MainPineLineEmulator {
         Options options = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(Options.class);
-
+        System.out.println(options);
+        
         final String SUBSCRIPTION = String.format("projects/%s/subscriptions/%s", options.getPubSubProject(), options.getSubscription());
 
         final String ERROR_QUEUE = String.format("projects/%s/topics/%s", options.getPubSubProject(), options.getDLQ());
         final String BQ_PROJECT = options.getBQProject();
         final String BQ_DATASET = options.getBQDataset();
-
-        System.out.println(options);
 
         Pipeline pipeline = Pipeline.create(options);
         options.setJobName("Analyze human information" + System.currentTimeMillis());
