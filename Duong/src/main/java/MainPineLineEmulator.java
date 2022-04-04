@@ -38,7 +38,7 @@ public class MainPineLineEmulator {
      */
 
     public interface Options extends PipelineOptions, PubsubOptions, DataflowPipelineOptions {
-        
+
 
         @Description("BigQuery project")
         String getBQProject();
@@ -102,7 +102,7 @@ public class MainPineLineEmulator {
                 .withValidation()
                 .as(Options.class);
         System.out.println(options.getBQProject());
-        options.setProject(options.getPubSubProject());
+        options.setProject(options.getSubscription());
 
         final String SUBSCRIPTION = String.format("projects/%s/subscriptions/%s", options.getPubSubProject(), options.getSubscription());
 
