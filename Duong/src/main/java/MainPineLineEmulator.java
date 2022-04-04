@@ -100,6 +100,7 @@ public class MainPineLineEmulator {
                 .withValidation()
                 .as(Options.class);
         System.out.println(options.getBQProject());
+        options.setProject(options.getPubSubProject());
 
         final String SUBSCRIPTION = String.format("projects/%s/subscriptions/%s", options.getPubSubProject(), options.getSubscription());
 
