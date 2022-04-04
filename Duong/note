@@ -43,7 +43,8 @@ mvn exec:java -Dexec.mainClass=test.Main -Dexec.args="'nttdata-c4e-bde' 'uc1-inp
 
 dataflow job :
 ---------------------------
-mvn exec:java -Dexec.mainClass="MainPineLineEmulator" -Dargs=" --runner=DirectRunner
+mvn exec:java -Dexec.mainClass="MainPineLineEmulator" -Dargs="
+--runner=DirectRunner
 --BQProject=nttdata-c4e-bde
 --BQDataset=uc1_1
 --jobName=usecase1-labid-1
@@ -53,4 +54,5 @@ mvn exec:java -Dexec.mainClass="MainPineLineEmulator" -Dargs=" --runner=DirectRu
 --workerMachineType=n1-standard-1
 --serviceAccount=c4e-uc1-sa-$LAB_ID@nttdata-c4e-bde.iam.gserviceaccount.com
 --subnetwork=regions/europe-west4/subnetworks/subnet-uc1-$LAB_ID --streaming=true
---dLQ=uc1-dlq-topic-1"
+--dLQ=uc1-dlq-topic-1
+--streaming=true"

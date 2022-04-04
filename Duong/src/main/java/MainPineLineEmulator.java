@@ -36,7 +36,7 @@ public class MainPineLineEmulator {
      * The logger to output status messages to.
      */
 
-    public interface Options extends PipelineOptions, PubsubOptions {
+    public interface Options extends PipelineOptions, PubsubOptions, DataflowPipelineOptions {
         @Description("BigQuery project")
         String getBQProject();
 
