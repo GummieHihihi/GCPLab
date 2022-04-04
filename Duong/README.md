@@ -21,7 +21,7 @@ mvn exec:java -Dexec.mainClass="MainPineLineEmulator" -Dexec.args=" \
 --BQProject=nttdata-c4e-bde \
 --BQDataset=${DATASET} \
 --subscription=uc1-input-topic-sub-1 \
---jobName=${LAB_ID} \
+--jobName=usecase1-labid-${LAB_ID} \
 --pubSubProject=nttdata-c4e-bde \
 --region=europe-west4 \
 --maxNumWorkers=1 \
