@@ -98,8 +98,6 @@ public class MainPineLineEmulator {
         Options options = PipelineOptionsFactory.fromArgs(args)
                 .withValidation()
                 .as(Options.class);
-        Pipeline p = Pipeline.create(options);
-        options.setStreaming(true);
 
         final String SUBSCRIPTION = String.format("projects/%s/subscriptions/%s", options.getPubSubProject(), options.getSubscription());
 
@@ -131,7 +129,7 @@ public class MainPineLineEmulator {
 
         transformOut.get(unparsedMessages)
                 .apply("Write error to PubSub", PubsubIO.writeStrings().to(ERROR_QUEUE));
-        p.run();
+        pipeline.run();
     }
 
 }
