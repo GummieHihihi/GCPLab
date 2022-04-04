@@ -14,6 +14,7 @@ import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.TableDestination;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubOptions;
+import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
@@ -36,10 +37,30 @@ public class MainPineLineEmulator {
      */
 
     public interface Options extends PipelineOptions, PubsubOptions {
-        /**
-         * The {@link Options} class provides the custom execution options passed by the executor at the
-         * command-line.
-         */
+        @Description("BigQuery project")
+        String getBQProject();
+
+        void setBQProject(String value);
+
+        @Description("BigQuery dataset")
+        String getBQDataset();
+
+        void setBQDataset(String value);
+
+        @Description("Pubsub project")
+        String getPubSubProject();
+
+        void setPubSubProject(String value);
+
+        @Description("Pubsub subscription")
+        String getSubscription();
+
+        void setSubscription(String value);
+
+        @Description("DLQ name")
+        String getDLQ();
+
+        void setDLQ(String value);
     }
 
         /**
@@ -79,11 +100,12 @@ public class MainPineLineEmulator {
                 .as(Options.class);
         Pipeline p = Pipeline.create(options);
         options.setStreaming(true);
-        options.setRunner(DirectRunner.class);
-        run(options);
-    }
 
-    public static PipelineResult run(Options options) {
+        final String SUBSCRIPTION = String.format("projects/%s/subscriptions/%s", options.getPubSubProject(), options.getSubscription());
+
+        final String ERROR_QUEUE = String.format("projects/%s/topics/%s", options.getPubSubProject(), options.getDLQ());
+        final String BQ_PROJECT = options.getBQProject();
+        final String BQ_DATASET = options.getBQDataset();
 
         Pipeline pipeline = Pipeline.create(options);
         options.setJobName("Analyze human information" + System.currentTimeMillis());
@@ -92,44 +114,24 @@ public class MainPineLineEmulator {
         PCollectionTuple transformOut =
                 pipeline.apply("ReadPubSubMessages", PubsubIO.readStrings()
                                 // Retrieve timestamp information from Pubsub Message attribute
-                                .fromSubscription("projects/nttdata-c4e-bde/subscriptions/uc1-input-topic-sub-0"))
+                                .fromSubscription(SUBSCRIPTION))
                         .apply("ConvertMessageToAccount", new PubsubMessageToAccount());
 
-            transformOut.get(parsedMessages)
-                    .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
-                            .to((row) -> {
-                                String tableName = "account";
-                                return new TableDestination(String.format("%s:%s.%s", "nttdata-c4e-bde", "uc1_0", tableName), "Some destination");
-                            })
-                            .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
-                            .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
-                            .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
-                            .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_NEVER)
-        );
+        transformOut.get(parsedMessages)
+                .apply("WriteSuccessfulRecordsToBQ", BigQueryIO.writeTableRows()
+                        .to((row) -> {
+                            String tableName = "account";
+                            return new TableDestination(String.format("%s:%s.%s", BQ_PROJECT , BQ_DATASET, tableName), "Some destination");
+                        })
+                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()) //Retry all failures except for known persistent errors.
+                        .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
+                        .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_NEVER)
+                );
 
         transformOut.get(unparsedMessages)
-                .apply("false message handling", ParDo.of(new DoFn<String, String>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) throws ExecutionException, InterruptedException {
-                        TopicName topicName = TopicName.of("nttdata-c4e-bde","uc1-dlq-topic-1");
-                        Publisher publisher = null;
-
-                        try {
-                            publisher = Publisher.newBuilder(topicName).build();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        String text = c.element();
-                        if (text!=null){
-                            ByteString data = ByteString.copyFromUtf8(text);
-                            PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
-                            ApiFuture<String> future = publisher.publish(pubsubMessage);
-                            String messageId = future.get();
-                        }
-                    }
-                }));
-        return pipeline.run();
+                .apply("Write error to PubSub", PubsubIO.writeStrings().to(ERROR_QUEUE));
+        p.run();
     }
 
 }
