@@ -50,8 +50,8 @@ mvn exec:java -Dexec.mainClass="MainPineLineEmulator" -Dexec.args=" \
 --project=nttdata-c4e-bde \
 --BQProject=nttdata-c4e-bde \
 --BQDataset=${DATASET} \
---subscription=uc1-input-topic-sub-1 \
---jobName=usecase1-labid-100 \
+--subscription=${LAB_ID} \
+--jobName=usecase1-labid-1 \
 --pubSubProject=nttdata-c4e-bde \
 --region=europe-west4 \
 --maxNumWorkers=1 \

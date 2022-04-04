@@ -2,7 +2,8 @@
 
 please  follow these command to execute the pineline : 
 
-First you need to pull the code from github : 
+First you need to pull the code from github :
+git clone https://github.com/GummieHihihi/Lab1_Duong
 
 
 To send data :
